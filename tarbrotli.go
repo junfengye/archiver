@@ -3,6 +3,7 @@ package archiver
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/andybalholm/brotli"
@@ -43,6 +44,12 @@ func (tbr *TarBrotli) Archive(sources []string, destination string) error {
 func (tbr *TarBrotli) Unarchive(source, destination string) error {
 	tbr.wrapReader()
 	return tbr.Tar.Unarchive(source, destination)
+}
+
+// FileWalk calls walkFn for each visited item in archive with os.File.
+func (tbr *TarBrotli) FileWalk(file *os.File, walkFn WalkFunc) error {
+	tbr.wrapReader()
+	return tbr.Tar.FileWalk(file, walkFn)
 }
 
 // Walk calls walkFn for each visited item in archive.

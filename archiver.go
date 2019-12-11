@@ -145,6 +145,7 @@ func (rfc ReadFakeCloser) Close() error { return nil }
 // about each item in the archive.
 type Walker interface {
 	Walk(archive string, walkFn WalkFunc) error
+	FileWalk(file *os.File, walkFunc WalkFunc) error
 }
 
 // WalkFunc is called at each item visited by Walk.

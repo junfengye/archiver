@@ -434,15 +434,9 @@ func (t *Tar) Close() error {
 	return err
 }
 
-// Walk calls walkFn for each visited item in archive.
-func (t *Tar) Walk(archive string, walkFn WalkFunc) error {
-	file, err := os.Open(archive)
-	if err != nil {
-		return fmt.Errorf("opening archive file: %v", err)
-	}
-	defer file.Close()
-
-	err = t.Open(file, 0)
+// FileWalk calls walkFn for each visited item in archive with os.File.
+func (t *Tar) FileWalk(file *os.File, walkFn WalkFunc) error {
+	err := t.Open(file, 0)
 	if err != nil {
 		return fmt.Errorf("opening archive: %v", err)
 	}
@@ -474,6 +468,17 @@ func (t *Tar) Walk(archive string, walkFn WalkFunc) error {
 	}
 
 	return nil
+}
+
+// Walk calls walkFn for each visited item in archive.
+func (t *Tar) Walk(archive string, walkFn WalkFunc) error {
+	file, err := os.Open(archive)
+	if err != nil {
+		return fmt.Errorf("opening archive file: %v", err)
+	}
+	defer file.Close()
+
+	return t.FileWalk(file, walkFn)
 }
 
 // Extract extracts a single file from the tar archive.

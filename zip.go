@@ -425,14 +425,7 @@ func (z *Zip) Close() error {
 	return nil
 }
 
-// Walk calls walkFn for each visited item in archive.
-func (z *Zip) Walk(archive string, walkFn WalkFunc) error {
-	zr, err := zip.OpenReader(archive)
-	if err != nil {
-		return fmt.Errorf("opening zip reader: %v", err)
-	}
-	defer zr.Close()
-
+func (z *Zip) readerWalk(zr *zip.Reader, walkFn WalkFunc) error {
 	for _, zf := range zr.File {
 		zfrc, err := zf.Open()
 		if err != nil {
@@ -463,6 +456,30 @@ func (z *Zip) Walk(archive string, walkFn WalkFunc) error {
 	}
 
 	return nil
+}
+
+// FileWalk calls walkFn for each visited item in archive with os.File.
+func (z *Zip) FileWalk(file *os.File, walkFn WalkFunc) error {
+	fi, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	zr, err := zip.NewReader(file, fi.Size())
+	if err != nil {
+		return fmt.Errorf("opening zip reader: %v", err)
+	}
+	return z.readerWalk(zr, walkFn)
+}
+
+// Walk calls walkFn for each visited item in archive.
+func (z *Zip) Walk(archive string, walkFn WalkFunc) error {
+	zr, err := zip.OpenReader(archive)
+	if err != nil {
+		return fmt.Errorf("opening zip reader: %v", err)
+	}
+	defer zr.Close()
+
+	return z.readerWalk(&zr.Reader, walkFn)
 }
 
 // Extract extracts a single file from the zip archive.
